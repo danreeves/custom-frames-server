@@ -1,4 +1,5 @@
 require("dotenv").config();
+let MemoryStore = require("memorystore");
 let Steam = require("openid-steam");
 let _nanoid = require("nanoid");
 let express = require("express");
@@ -35,8 +36,11 @@ app.use(
     saveUninitialized: true,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 604800, // one week
+      maxAge: 86400, // 24h in s
     },
+    store: new MemoryStore({
+      checkPeriod: 86400000, // 24h in ms
+    }),
   })
 );
 
