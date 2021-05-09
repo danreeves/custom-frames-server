@@ -1,5 +1,5 @@
 require("dotenv").config();
-let MemoryStore = require("memorystore");
+let MemoryStoreFactory = require("memorystore");
 let Steam = require("openid-steam");
 let _nanoid = require("nanoid");
 let express = require("express");
@@ -15,6 +15,8 @@ let session = require("express-session");
 
 let alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 let nanoid = _nanoid.customAlphabet(alphabet, 14);
+
+let MemoryStore = MemoryStoreFactory(session);
 
 let IMG_DIR =
   process.env.NODE_ENV === "production" ? "/var/data/images" : "./data/images";
