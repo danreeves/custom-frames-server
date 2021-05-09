@@ -156,7 +156,7 @@ async function mainPage(req, res, status, content = {}) {
         ${message ? `<p class="message">${message}</p>` : ""}
         ${error ? `<p class="error">${error}</p>` : ""}
         <input type="file" name="image" />
-        <button type="submit">upload</button>
+        <button type="submit">Upload</button>
       </form>
       ${await framesList()}
       `)
@@ -234,8 +234,10 @@ app.post("/", async (req, res) => {
 
 app.get("/img/:id", async (req, res) => {
   let { id } = req.params;
-  console.log(path.join(__dirname, IMG_DIR, id));
-  res.sendFile(path.join(__dirname, IMG_DIR, id));
+  let filepath = IMG_DIR.startsWith("/")
+    ? path.join(IMG_DIR, id)
+    : path.join(__dirname, IMG_DIR, id);
+  res.sendFile(filepath);
 });
 
 app.get("/template.png", async (req, res) => {
