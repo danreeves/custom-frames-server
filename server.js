@@ -9,6 +9,7 @@ let fs = require("fs").promises;
 let im = require("imagemagick");
 let jsonfile = require("jsonfile");
 let mkdirp = require("mkdirp");
+let mv = require("mv");
 let path = require("path");
 let pino = require("express-pino-logger");
 let session = require("express-session");
@@ -205,20 +206,24 @@ app.post("/", async (req, res) => {
         let ddsPath = newPath.replace(/\.png$/, ".dds");
         let jsonPath = newPath.replace(/\.png$/, ".json");
 
-        await fs.rename(filePath, newPath);
-
-        im.convert([newPath, ddsPath], async (err) => {
+        mv(filePath, newPath, async (err) => {
           if (err) {
             await mainPage(req, res, 406, { error: err });
             return;
           }
-          jsonfile.writeFileSync(jsonPath, {
-            steamId: req.session.steamId,
-            personaname: user.personaname,
-            profileurl: user.profileurl,
+          im.convert([newPath, ddsPath], async (err) => {
+            if (err) {
+              await mainPage(req, res, 406, { error: err });
+              return;
+            }
+            jsonfile.writeFileSync(jsonPath, {
+              steamId: req.session.steamId,
+              personaname: user.personaname,
+              profileurl: user.profileurl,
+            });
+            await mainPage(req, res, 200, { message: "Upload successful" });
+            return;
           });
-          await mainPage(req, res, 200, { message: "Upload successful" });
-          return;
         });
       });
     });
