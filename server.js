@@ -5,7 +5,7 @@ let _nanoid = require("nanoid");
 let express = require("express");
 let fetch = require("node-fetch");
 let formidable = require("formidable");
-let fs = require("fs").promises;
+let fs = require("fs");
 let im = require("imagemagick");
 let jsonfile = require("jsonfile");
 let mkdirp = require("mkdirp");
@@ -88,8 +88,20 @@ function tpl(body) {
 }
 
 async function framesList() {
-  let frames = await fs.readdir(IMG_DIR);
-  frames = frames
+  let frames = fs
+    .readdirSync(IMG_DIR)
+    .map(function (fileName) {
+      return {
+        name: fileName,
+        time: fs.statSync(path.join(IMG_DIR, fileName)).mtime.getTime(),
+      };
+    })
+    .sort(function (a, b) {
+      return b.time - a.time;
+    })
+    .map(function (v) {
+      return v.name;
+    })
     .map((filename) => {
       if (filename.endsWith(".json")) {
         let content = jsonfile.readFileSync(path.join(IMG_DIR, filename));
