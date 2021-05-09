@@ -244,4 +244,8 @@ app.get("/logout", async (req, res) => {
   res.redirect(302, "/");
 });
 
+app.get("/healthz", (req, res) => {
+  res.status(200).send("OK");
+});
+
 app.listen(process.env.PORT || 3000, () => console.log("server started..."));
