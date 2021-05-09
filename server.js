@@ -107,14 +107,16 @@ async function framesList() {
     .filter(Boolean);
   return `
       <div class="frames">
-        ${frames.map(
-          (frame) =>
-            `<div class="frame-container">
+        ${frames
+          .map(
+            (frame) =>
+              `<div class="frame-container">
               <img height="200" src="/img/${frame.png}"/>
               <small>Uploaded by <a href="${frame.profileurl}">${frame.personaname}</a></small>
               <button onclick="copylink('/img/${frame.dds}')">Copy link</button>
             </div>`
-        )}
+          )
+          .join("")}
       </div>
     `;
 }
@@ -150,8 +152,8 @@ async function mainPage(req, res, status, content = {}) {
       <p>Hello, <a href=${user.profileurl}>${
       user.personaname
     }</a>. <a href="/logout">Log out</a></p>
-      <form action="/" method="POST" enctype="multipart/form-data">
-        <p>Frames must be png files that are 600px high and 512px wide.</p>
+      <form action="/upload" method="POST" enctype="multipart/form-data">
+        <p>Frames must be png files that are 512px wide and 600px high.</p>
         <p>Download the <a href="/template.png">template</a>.</p>
         ${message ? `<p class="message">${message}</p>` : ""}
         ${error ? `<p class="error">${error}</p>` : ""}
@@ -165,21 +167,32 @@ async function mainPage(req, res, status, content = {}) {
 
 app.get("/", async (req, res) => {
   if (req.session.steamId) {
-    await mainPage(req, res, 200);
+    let { message, error } = req.session;
+    req.session.message = null;
+    req.session.error = null;
+    await mainPage(req, res, 200, { message, error });
   } else {
     await signInPage(res);
   }
 });
 
-app.post("/", async (req, res) => {
+app.post("/upload", async (req, res) => {
   if (req.session.steamId) {
     let form = formidable({ multiples: true });
     let user = await getSteamUser(req.session.steamId);
 
     form.parse(req, async (err, fields, files) => {
       let { image } = files;
+
+      if (!image) {
+        req.session.error = "File must be a png";
+        res.redirect(301, "/");
+        return;
+      }
+
       if (image.type !== "image/png") {
-        await mainPage(req, res, 406, { error: "File not a png" });
+        req.session.error = "File must be a png";
+        res.redirect(301, "/");
         return;
       }
 
@@ -187,17 +200,19 @@ app.post("/", async (req, res) => {
       im.identify(filePath, async (err, features) => {
         if (err) {
           console.error(err);
+          req.session.error = err.toString();
+          res.redirect(301, "/");
           return;
         }
         if (features.format !== "PNG") {
-          await mainPage(req, res, 406, { error: "File not a png" });
+          req.session.error = "File must be a png";
+          res.redirect(301, "/");
           return;
         }
 
         if (features.width !== 512 || features.height !== 600) {
-          await mainPage(req, res, 406, {
-            error: "File must be 512x600 pixels",
-          });
+          req.session.error = "File must be 512x600 pixels";
+          res.redirect(301, "/");
           return;
         }
 
@@ -208,12 +223,14 @@ app.post("/", async (req, res) => {
 
         mv(filePath, newPath, async (err) => {
           if (err) {
-            await mainPage(req, res, 406, { error: err });
+            req.session.error = err.toString();
+            res.redirect(301, "/");
             return;
           }
           im.convert([newPath, ddsPath], async (err) => {
             if (err) {
-              await mainPage(req, res, 406, { error: err });
+              req.session.error = err.toString();
+              res.redirect(301, "/");
               return;
             }
             jsonfile.writeFileSync(jsonPath, {
@@ -221,7 +238,8 @@ app.post("/", async (req, res) => {
               personaname: user.personaname,
               profileurl: user.profileurl,
             });
-            await mainPage(req, res, 200, { message: "Upload successful" });
+            req.session.message = "Upload successful";
+            res.redirect(301, "/");
             return;
           });
         });
