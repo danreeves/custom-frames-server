@@ -21,7 +21,9 @@ let IMG_DIR =
 // Ensure the img dir exists
 mkdirp.sync(IMG_DIR);
 
-let steam = new Steam("http://localhost:3000/auth");
+let DOMAIN = process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
+
+let steam = new Steam(DOMAIN + "/auth");
 let app = express();
 
 app.use(pino());
