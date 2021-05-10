@@ -80,6 +80,7 @@ function tpl(body) {
             justify-content: center;
             gap: 1rem;
             grid-template-columns: repeat(auto-fit, 200px);
+            margin-bottom: 5rem;
           }
           .frame-container {
             width: 200px;
@@ -88,6 +89,10 @@ function tpl(body) {
           .frame-container small {
             display: block;
             margin-bottom: .25rem;
+          }
+          .frame-container small pre {
+            margin: 0;
+            font-size: .8rem
           }
           .footer {
             position: fixed;
@@ -104,12 +109,26 @@ function tpl(body) {
           }
         </style>
         <script>
-          function copylink(path) {
+          function copylink(path, button) {
             let url = new URL(path, document.location.protocol + "//" + document.location.host)
-            navigator.clipboard.writeText(url.toString()).then(function() {
+            let str = url.toString()
+
+            navigator.clipboard.writeText(str).then(function() {
               console.log('Copied')
+              let originalText = button.innerText
+              button.innerText = "Copied ✓"
+              setTimeout(function () {
+                button.innerText = originalText
+              }, 2000)
             }, function() {
               console.error('Copy failed')
+              let node = document.createElement("small")
+              node.innerText = "Copy failed. Try this: "
+              let innerNode = document.createElement("pre")
+              innerNode.innerText = str
+              node.appendChild(innerNode)
+              button.parentNode.appendChild(node)
+              button.parentNode.removeChild(button)
             });
           }
         </script>
@@ -160,7 +179,7 @@ async function framesList() {
               `<div class="frame-container">
               <img height="200" src="/img/${frame.png}"/>
               <small>Uploaded by <a href="${frame.profileurl}">${frame.personaname}</a></small>
-              <button onclick="copylink('/img/${frame.dds}')">Copy link</button>
+              <button onclick="copylink('/img/${frame.dds}', this)">Copy link</button>
             </div>`
           )
           .join("")}
