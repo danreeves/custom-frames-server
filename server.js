@@ -53,7 +53,28 @@ function tpl(body) {
     <html>
       <head>
         <title>Custom Frames</title>
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&display=swap" rel="stylesheet">
         <style>
+          body {
+            font-family: 'IM Fell English', serif;
+            font-size: 1.25rem;
+          }
+          p {
+            margin: 0.2rem 0;
+          }
+          a {
+            color: teal;
+          }
+          input {
+            margin-top: 1rem;
+          }
+          .error {
+            color: darkred;
+          }
+          .message {
+            color: seagreen;
+          }
           .frames {
             display: grid;
             justify-content: center;
@@ -67,6 +88,19 @@ function tpl(body) {
           .frame-container small {
             display: block;
             margin-bottom: .25rem;
+          }
+          .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: block;
+            margin: 1rem;
+            margin-bottom: .25rem;
+            text-align: center;
+            opacity: 0.5;
+          }
+          .footer:hover {
+            opacity: 1;
           }
         </style>
         <script>
@@ -82,6 +116,7 @@ function tpl(body) {
       </head>
       <body>
         ${body}
+        <small class="footer">Made by <a href="https://raindi.sh">raindish</a>.</small>
       </body>
     </html>
   `;
@@ -167,10 +202,10 @@ async function mainPage(req, res, status, content = {}) {
       <form action="/upload" method="POST" enctype="multipart/form-data">
         <p>Frames must be png files that are 512px wide and 600px high.</p>
         <p>Download the <a href="/template.png">template</a>.</p>
-        ${message ? `<p class="message">${message}</p>` : ""}
-        ${error ? `<p class="error">${error}</p>` : ""}
         <input type="file" name="image" />
         <button type="submit">Upload</button>
+        ${message ? `<p class="message">${message}</p>` : ""}
+        ${error ? `<p class="error">${error}</p>` : ""}
       </form>
       ${await framesList()}
       `)
