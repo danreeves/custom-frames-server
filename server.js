@@ -6,6 +6,7 @@ let express = require("express");
 let fetch = require("node-fetch");
 let formidable = require("formidable");
 let fs = require("fs");
+let helmet = require("helmet");
 let im = require("imagemagick");
 let jsonfile = require("jsonfile");
 let mkdirp = require("mkdirp");
@@ -33,6 +34,7 @@ let DOMAIN =
 let steam = new Steam(DOMAIN + "/auth");
 let app = express();
 
+app.use(helmet());
 app.use(pino());
 app.set("trust proxy", 1); // trust first proxy
 app.use(
