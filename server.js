@@ -113,35 +113,12 @@ function tpl(body) {
             opacity: 1;
           }
         </style>
-        <script>
-          function copylink(path, button) {
-            let url = new URL(path, document.location.protocol + "//" + document.location.host)
-            let str = url.toString()
-
-            navigator.clipboard.writeText(str).then(function() {
-              console.log('Copied')
-              let originalText = button.innerText
-              button.innerText = "Copied ✓"
-              setTimeout(function () {
-                button.innerText = originalText
-              }, 2000)
-            }, function() {
-              console.error('Copy failed')
-              let node = document.createElement("small")
-              node.innerText = "Copy failed. Try this: "
-              let innerNode = document.createElement("pre")
-              innerNode.innerText = str
-              node.appendChild(innerNode)
-              button.parentNode.appendChild(node)
-              button.parentNode.removeChild(button)
-            });
-          }
-        </script>
       </head>
       <body>
         ${body}
         <small class="footer">Made by <a href="https://raindi.sh">raindish</a>.</small>
       </body>
+      <script src="/script.js"></script>
     </html>
   `;
 }
@@ -184,7 +161,7 @@ async function framesList() {
               `<div class="frame-container">
               <img height="200" src="/img/${frame.png}"/>
               <small>Uploaded by <a href="${frame.profileurl}">${frame.personaname}</a></small>
-              <button onclick="copylink('/img/${frame.dds}', this)">Copy link</button>
+              <button class="copy-button" data-link="/img/${frame.dds}">Copy link</button>
             </div>`
           )
           .join("")}
@@ -331,6 +308,10 @@ app.get("/img/:id", async (req, res) => {
 
 app.get("/template.png", async (req, res) => {
   res.sendFile(path.join(__dirname, "template.png"));
+});
+
+app.get("/script.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "script.js"));
 });
 
 app.get("/auth", async (req, res) => {
