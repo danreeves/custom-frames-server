@@ -42,10 +42,10 @@ app.use(
     saveUninitialized: true,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 86400, // 24h in s
+      maxAge: 86400000, // 24 hours
     },
     store: new MemoryStore({
-      checkPeriod: 86400000, // 24h in ms
+      checkPeriod: 86400000, // 24 hours
     }),
   })
 );
