@@ -31,6 +31,10 @@ let DOMAIN =
     ? "https://custom-frames.verminti.de"
     : "http://localhost:3000";
 
+let ban_list = [
+  "76561198169033588", // iLooking123
+];
+
 let steam = new Steam(DOMAIN + "/auth");
 let app = express();
 
@@ -226,6 +230,10 @@ app.get("/", async (req, res) => {
 
 app.post("/upload", async (req, res) => {
   if (req.session.steamId) {
+    if (ban_list.includes(req.session.steamId)) {
+      res.redirect(301, "https://fuckoff.com");
+      return;
+    }
     let form = formidable({ multiples: true });
     let user = await getSteamUser(req.session.steamId);
 
