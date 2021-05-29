@@ -127,7 +127,7 @@ function tpl(body) {
   `;
 }
 
-async function framesList() {
+async function framesList({ currentSteamId } = {}) {
   let frames = fs
     .readdirSync(IMG_DIR)
     .map(function (fileName) {
@@ -147,7 +147,9 @@ async function framesList() {
         let content = jsonfile.readFileSync(path.join(IMG_DIR, filename));
         let pngUrl = filename.replace(/.json$/, ".png");
         let ddsUrl = filename.replace(/.json$/, ".dds");
+        let id = filename.replace(/.json$/, "");
         return {
+          id,
           steamId: content.steamId,
           personaname: content.personaname,
           profileurl: content.profileurl,
@@ -164,8 +166,17 @@ async function framesList() {
             (frame) =>
               `<div class="frame-container">
               <img height="200" src="/img/${frame.png}"/>
-              <small>Uploaded by <a href="${frame.profileurl}">${frame.personaname}</a></small>
-              <button class="copy-button" data-link="/img/${frame.dds}">Copy link</button>
+              <small>Uploaded by <a href="${frame.profileurl}">${
+                frame.personaname
+              }</a></small>
+              <button class="copy-button" data-link="/img/${
+                frame.dds
+              }">Copy link</button>
+              ${
+                currentSteamId && currentSteamId === frame.steamId
+                  ? `<button class="delete-button" data-link="/img/${frame.id}">Delete</button>`
+                  : ""
+              }
             </div>`
           )
           .join("")}
@@ -212,7 +223,7 @@ async function mainPage(req, res, status, content = {}) {
         ${message ? `<p class="message">${message}</p>` : ""}
         ${error ? `<p class="error">${error}</p>` : ""}
       </form>
-      ${await framesList()}
+      ${await framesList({ currentSteamId: req.session.steamId })}
       `)
   );
 }
