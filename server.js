@@ -314,6 +314,41 @@ app.get("/img/:id", async (req, res) => {
   res.sendFile(filepath);
 });
 
+app.delete("/img/:id", async (req, res) => {
+  let { id } = req.params;
+  if (!req.session.steamId) {
+    res.redirect(401, "/");
+    return;
+  }
+
+  let filepath = IMG_DIR.startsWith("/")
+    ? path.join(IMG_DIR, id)
+    : path.join(__dirname, IMG_DIR, id);
+
+  let jsonPath = filepath + ".json";
+  let pngPath = filepath + ".png";
+  let ddsPath = filepath + ".dds";
+
+  if (!fs.existsSync(jsonPath)) {
+    res.redirect(404, "/");
+    return;
+  }
+
+  let data = jsonfile.readFileSync(jsonPath);
+
+  if (data.steamId !== req.session.steamId) {
+    res.redirect(401, "/");
+    return;
+  }
+
+  fs.unlinkSync(jsonPath);
+  fs.unlinkSync(pngPath);
+  fs.unlinkSync(ddsPath);
+
+  res.status(200).send();
+  return;
+});
+
 app.get("/template.png", async (req, res) => {
   res.sendFile(path.join(__dirname, "template.png"));
 });
