@@ -127,7 +127,7 @@ function tpl(body) {
   `;
 }
 
-async function framesList({ currentSteamId } = {}) {
+async function framesList({ currentSteamId, onlyOwn } = { onlyOwn: false }) {
   let frames = fs
     .readdirSync(IMG_DIR)
     .map(function (fileName) {
@@ -158,7 +158,13 @@ async function framesList({ currentSteamId } = {}) {
         };
       }
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((frame) => {
+      if (onlyOwn) {
+        return frame.steamId === currentSteamId;
+      }
+      return true;
+    });
   return `
       <div class="frames">
         ${frames
@@ -206,15 +212,19 @@ async function signInPage(res) {
   );
 }
 
-async function mainPage(req, res, status, content = {}) {
+async function mainPage(req, res, status, content = { onlyOwn: false }) {
   let user = await getSteamUser(req.session.steamId);
-  let { error, message } = content;
+  let { error, message, onlyOwn } = content;
+
+  let pageLink = onlyOwn
+    ? `<a href="/">All Frames</a>`
+    : `<a href="/my-frames">My Frames</a>`;
 
   res.status(status).send(
     tpl(`
       <p>Hello, <a href=${user.profileurl}>${
       user.personaname
-    }</a>. <a href="/logout">Log out</a></p>
+    }</a>. ${pageLink} <a href="/logout">Log out</a></p>
       <form action="/upload" method="POST" enctype="multipart/form-data">
         <p>Frames must be png files that are 512px wide and 600px high.</p>
         <p>Download the <a href="/template.png">template</a>.</p>
@@ -223,7 +233,7 @@ async function mainPage(req, res, status, content = {}) {
         ${message ? `<p class="message">${message}</p>` : ""}
         ${error ? `<p class="error">${error}</p>` : ""}
       </form>
-      ${await framesList({ currentSteamId: req.session.steamId })}
+      ${await framesList({ currentSteamId: req.session.steamId, onlyOwn })}
       `)
   );
 }
@@ -236,6 +246,18 @@ app.get("/", async (req, res) => {
     await mainPage(req, res, 200, { message, error });
   } else {
     await signInPage(res);
+  }
+});
+
+app.get("/my-frames", async (req, res) => {
+  if (req.session.steamId) {
+    let { message, error } = req.session;
+    req.session.message = null;
+    req.session.error = null;
+    await mainPage(req, res, 200, { message, error, onlyOwn: true });
+  } else {
+    res.redirect(307, "/");
+    return;
   }
 });
 
