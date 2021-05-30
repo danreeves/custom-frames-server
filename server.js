@@ -120,7 +120,7 @@ function tpl(body) {
       </head>
       <body>
         ${body}
-        <small class="footer">Made by <a href="https://raindi.sh">raindish</a>.</small>
+        <small class="footer">Made by <a href="https://raindi.sh">raindish</a>. Get the <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1703217915">mod</a>!</small>
       </body>
       <script src="/script.js"></script>
     </html>
